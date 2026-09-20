@@ -1,0 +1,16 @@
+# .gitignore
+
+# Ignorar el entorno virtual (el servidor de internet creará el suyo propio)
+venv/
+env/
+
+# Ignorar la base de datos local de SQLite por seguridad
+db.sqlite3
+
+# Ignorar archivos temporales y compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignorar la carpeta de imágenes subidas localmente (el servidor manejará las suyas)
+media/

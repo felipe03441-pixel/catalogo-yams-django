@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+{% load humanize %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You and Me Shop - Catálogo</title>
+    <!-- Importamos Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Aquí definimos los colores de tu empresa usando CSS -->
+    <style>
+        /* Color de fondo de toda la página (Rosa pastel suave inspirado en tu logo) */
+        body {
+            background-color: #fae6f6; 
+        }
+        /* Color de la barra de navegación superior (Morado) */
+        .navbar-custom {
+            background-color: #b478c9; 
+        }
+        /* Color del texto del precio (Morado oscuro) */
+        .texto-precio {
+            color: #883b9c; 
+        }
+        /* Diseño del botón principal */
+        .btn-custom {
+            background-color: #b478c9; 
+            color: white;
+            border: none;
+        }
+        /* Color del botón cuando pasas el ratón por encima (Morado más oscuro) */
+        .btn-custom:hover {
+            background-color: #883b9c; 
+            color: white;
+        }
+    </style>
+</head>
+<!-- BOTÓN FLOTANTE DEL CARRITO (Actualizado para abrir el menú) -->
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button class="btn btn-success rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;" data-bs-toggle="offcanvas" data-bs-target="#carritoOffcanvas">
+            <span class="fs-3">🛒</span>
+            <span id="contador-carrito" class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">0</span>
+        </button>
+    </div>
+
+    <!-- MENÚ LATERAL DEL CARRITO (Offcanvas) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="carritoOffcanvas" aria-labelledby="carritoOffcanvasLabel">
+      <div class="offcanvas-header" style="background-color: #fae6f6;">
+        <h5 class="offcanvas-title" id="carritoOffcanvasLabel" style="color: #883b9c;">🛒 Mi Pedido</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column">
+        
+        <!-- Lista donde JavaScript inyectará los productos -->
+        <ul id="lista-carrito" class="list-group mb-3">
+           <!-- Los items aparecerán aquí -->
+        </ul>
+        
+        <!-- Total y botón final -->
+        <div class="mt-auto border-top pt-3">
+            <h4 class="text-end" style="color: #883b9c;">Total: $<span id="total-carrito">0</span></h4>
+            <!-- Este botón es el que ahora ejecuta la función de WhatsApp -->
+            <button onclick="enviarPedido()" class="btn btn-custom w-100 mt-2 fs-5">
+                Enviar pedido a WhatsApp 📲
+            </button>
+        </div>
+      </div>
+    </div>
+<!-- LÓGICA DE PROGRAMACIÓN JAVASCRIPT -->
+<script>
+    // 1. Memoria del carrito
+    let carrito = [];
+
+    // 2. Función para agregar
+    function agregarAlCarrito(nombre, precio) {
+        carrito.push({ nombre: nombre, precio: precio });
+        actualizarInterfaz(); // Llamamos a la función que redibuja el menú
+        alert("Agregaste: " + nombre + " al carrito.");
+    }
+
+    // 3. Función para borrar un producto de la memoria
+    function eliminarDelCarrito(indice) {
+        // splice elimina 1 elemento en la posición 'indice'
+        carrito.splice(indice, 1);
+        actualizarInterfaz();
+    }
+
+    // 4. Función encargada de dibujar los cambios en la pantalla
+    function actualizarInterfaz() {
+        // Actualizar la burbuja roja
+        document.getElementById('contador-carrito').innerText = carrito.length;
+
+        let listaHTML = document.getElementById('lista-carrito');
+        let totalHTML = document.getElementById('total-carrito');
+        let total = 0;
+
+        // Limpiamos el código HTML anterior de la lista
+        listaHTML.innerHTML = ""; 
+
+        // Recorremos la memoria y creamos el código HTML para cada producto
+        for (let i = 0; i < carrito.length; i++) {
+            let item = carrito[i];
+            total += item.precio;
+
+            listaHTML.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="my-0 text-capitalize">${item.nombre.toLowerCase()}</h6>
+                        <small class="text-muted">$${item.precio.toLocaleString('es-CO')}</small>
+                    </div>
+                    <button onclick="eliminarDelCarrito(${i})" class="btn btn-outline-danger btn-sm border-0">🗑️</button>
+                </li>
+            `;
+        }
+
+        // Actualizamos el número del total
+        totalHTML.innerText = total.toLocaleString('es-CO');
+    }
+
+    // 5. Función para enviar los datos a WhatsApp
+    function enviarPedido() {
+        if (carrito.length === 0) {
+            alert("Tu carrito está vacío. ¡Agrega algunos productos primero!");
+            return;
+        }
+
+        let mensaje = "Hola You and Me Shop! 💖 Me interesa hacer el siguiente pedido:\n\n";
+        let total = 0;
+
+        for (let i = 0; i < carrito.length; i++) {
+            mensaje += "- " + carrito[i].nombre + " ($" + carrito[i].precio.toLocaleString('es-CO') + ")\n";
+            total += carrito[i].precio;
+        }
+
+        mensaje += "\n*Total estimado:* $" + total.toLocaleString('es-CO');
+        let telefono = "573182985702"; 
+        let urlWhatsApp = "https://wa.me/" + telefono + "?text=" + encodeURIComponent(mensaje);
+
+        window.open(urlWhatsApp, '_blank');
+    }
+</script>
+<!-- Motor de JavaScript de Bootstrap para el menú lateral -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<body>
+
+    <!-- Barra de navegación con el nuevo color -->
+    <nav class="navbar navbar-dark navbar-custom shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">💖 You and Me Shop</a>
+        </div>
+    </nav>
+
+<!-- Contenedor principal -->
+    <div class="container mt-4">
+        <h2 class="mb-4 text-center" style="color: #883b9c;">Nuestro Catálogo</h2>
+        <!-- Contenedor principal -->
+   
+        
+        <!-- NUEVO: Barra de búsqueda -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-md-8 col-lg-6">
+                <form method="GET" action="/">
+                    <div class="input-group shadow-sm">
+                        <!-- value="{{ query|default_if_none:'' }}" mantiene el texto después de buscar -->
+                        <input type="text" name="q" class="form-control border-custom" placeholder="Busca productos, ej. Agenda..." value="{{ query|default_if_none:'' }}">
+                        <button class="btn btn-custom" type="submit">🔍 Buscar</button>
+                        
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Barra de filtros por categoría -->
+        <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
+            <a href="/" class="btn btn-outline-secondary btn-sm">Todos</a>
+            {% for cat in categorias %}
+                <a href="/?categoria={{ cat.id }}" class="btn btn-outline-secondary btn-sm">{{ cat.nombre }}</a>
+            {% endfor %}
+        </div>
+        
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+            {% for producto in productos %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    <!-- Si el producto tiene imagen, la mostramos. Si no, un cuadro gris -->
+                    {% if producto.imagen %}
+                        <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <span>Sin imagen</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body d-flex flex-column text-center">
+                        <h6 class="card-title text-capitalize">{{ producto.nombre|lower }}</h6>
+                        <p class="card-text texto-precio fw-bold fs-5 mt-auto">${{ producto.precio|intcomma }}</p>
+                        
+                        <button onclick="agregarAlCarrito('{{ producto.nombre }}', {{ producto.precio }})" class="btn btn-custom btn-sm w-100 mt-2">
+                          🛒 Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center text-muted">No hay productos disponibles en esta categoría.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <!-- INICIO DE LOS CONTROLES DE PAGINACIÓN -->
+        <div class="d-flex justify-content-center mt-5 mb-5">
+            <ul class="pagination shadow-sm">
+                
+                <!-- Botones para retroceder -->
+                {% if productos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link fw-bold" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}" style="color: #883b9c;">&laquo; Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link fw-bold" href="?page={{ productos.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}" style="color: #883b9c;">Anterior</a>
+                    </li>
+                {% endif %}
+
+                <!-- Indicador de página actual -->
+                <li class="page-item active">
+                    <span class="page-link" style="background-color: #b478c9; border-color: #b478c9;">
+                        Página {{ productos.number }} de {{ productos.paginator.num_pages }}
+                    </span>
+                </li>
+
+                <!-- Botones para avanzar -->
+                {% if productos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link fw-bold" href="?page={{ productos.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}" style="color: #883b9c;">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link fw-bold" href="?page={{ productos.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if categoria_actual %}&categoria={{ categoria_actual }}{% endif %}" style="color: #883b9c;">Última &raquo;</a>
+                    </li>
+                {% endif %}
+                
+            </ul>
+        </div>
+        <!-- FIN DE LOS CONTROLES DE PAGINACIÓN -->
+    </div>
