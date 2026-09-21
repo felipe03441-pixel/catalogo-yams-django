@@ -1,15 +1,36 @@
 from django.contrib import admin
-from .models import Categoria, Producto
+from django import forms
+from .models import Producto, ImagenProducto
 
-# Habilitamos la edición de categorías
-admin.site.register(Categoria)
+# 1. Creamos nuestro propio componente visual con permiso para múltiples archivos
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
 
-# Habilitamos la edición de productos con una vista de tabla organizada
-@admin.register(Producto)
+# 2. Usamos nuestro nuevo componente en el formulario
+class ProductoAdminForm(forms.ModelForm):
+    fotos_multiples = forms.FileField(
+        # Aquí llamamos a nuestra nueva clase especial MultipleFileInput
+        widget=MultipleFileInput(attrs={'multiple': True}),
+        label="Subir múltiples fotos a la galería (Selecciona varias a la vez)",
+        required=False
+    )
+
+    class Meta:
+        model = Producto
+        fields = '__all__'
+
+class ImagenProductoInline(admin.TabularInline):
+    model = ImagenProducto
+    extra = 0 
+
 class ProductoAdmin(admin.ModelAdmin):
-    # Columnas que se verán en la lista principal
-    list_display = ('nombre', 'precio', 'stock', 'categoria')
-    # Filtro lateral para buscar rápidamente por categoría
-    list_filter = ('categoria',)
-    # Barra de búsqueda por nombre del producto
-    search_fields = ('nombre',)
+    form = ProductoAdminForm
+    inlines = [ImagenProductoInline]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        fotos = request.FILES.getlist('fotos_multiples')
+        for foto in fotos:
+            ImagenProducto.objects.create(producto=obj, imagen=foto)
+
+admin.site.register(Producto, ProductoAdmin)
